@@ -1,0 +1,11 @@
+{
+  "name": "automatos-finitos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "De expressão regular a AFD mínimo, passo a passo: Thompson, remoção de ε, subconjuntos, minimização, simulação, equivalência e eliminação de estados.",
+  "type": "module",
+  "scripts": { "test": "node --test" },
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/micdog22/automatos-finitos.git" },
+  "homepage": "https://micdog22.github.io/automatos-finitos/"
+}

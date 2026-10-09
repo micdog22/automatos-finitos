@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autômatos Finitos: de expressão regular a AFD mínimo</title>
+  <meta name="description" content="Transforme uma expressão regular em AFN-ε (Thompson), AFN sem ε, AFD e AFD mínimo, passo a passo, com grafos e tabelas. Simule palavras, teste equivalência, faça complemento, união e interseção e volte para expressão regular.">
+  <meta name="theme-color" content="#7c3aed">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔁</text></svg>">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Autômatos Finitos</h1>
+    <p class="lead">De expressão regular a AFD mínimo, passo a passo, com o grafo e a tabela de cada etapa.</p>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="t-expressao">
+      <h2 id="t-expressao">Expressão regular (A)</h2>
+      <div class="exemplos" id="exemplos" role="group" aria-label="Expressões de exemplo"></div>
+      <label for="expressao">Expressão</label>
+      <div class="linha">
+        <input id="expressao" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="ajuda-expressao erro-expressao">
+        <fieldset class="uniao">
+          <legend>União</legend>
+          <label><input type="radio" name="uniao" value="|" checked> <code>|</code></label>
+          <label><input type="radio" name="uniao" value="+"> <code>+</code></label>
+        </fieldset>
+      </div>
+      <p id="ajuda-expressao" class="muted small">Concatenação é só juntar (<code>ab</code>); <code>*</code> repete zero ou mais vezes, <code>?</code> torna opcional e, com a união em <code>|</code>, <code>+</code> repete uma ou mais vezes. A palavra vazia é <code>ε</code> ou <code>&amp;</code>; <code>∅</code> é a linguagem vazia. Use <code>\</code> antes de um operador para usá-lo como símbolo.</p>
+      <p id="erro-expressao" class="erro" role="alert" hidden></p>
+      <div id="resumo-expressao" aria-live="polite"></div>
+      <div class="acoes">
+        <button type="button" class="btn secondary" id="copiar-link">Copiar link</button>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card etapa" aria-labelledby="t-thompson">
+      <h2 id="t-thompson">1. AFN-ε pela construção de Thompson</h2>
+      <p class="muted small">Cada símbolo vira dois estados ligados pelo símbolo. União, <code>*</code>, <code>?</code> e <code>+</code> criam um início e um fim novos ligados por ε; na concatenação, o fim do primeiro pedaço vira o início do segundo.</p>
+      <p class="contagem" id="info-thompson"></p>
+      <div class="grafo" id="grafo-thompson"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-thompson"></table></div>
+    </section>
+
+    <section class="card etapa" aria-labelledby="t-sem-eps">
+      <h2 id="t-sem-eps">2. AFN sem ε</h2>
+      <p class="muted small">O fecho-ε de um estado é o que se alcança só com transições ε. Sem ε, de q lendo a vai-se para onde a leva a partir de qualquer estado do fecho de q; q é final se o fecho dele tem um final. Estados alcançáveis só por ε ficam sem uso e saem: sobram o inicial e um estado para cada símbolo da expressão.</p>
+      <details class="explica">
+        <summary>Fechos-ε</summary>
+        <div class="table-wrap"><table class="tabela" id="tabela-fechos"></table></div>
+      </details>
+      <p class="contagem" id="info-sem-eps"></p>
+      <div class="grafo" id="grafo-sem-eps"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-sem-eps"></table></div>
+    </section>
+
+    <section class="card etapa" aria-labelledby="t-afd">
+      <h2 id="t-afd">3. AFD pela construção de subconjuntos</h2>
+      <p class="muted small">Cada estado do AFD é um conjunto de estados do AFN: a partir de um conjunto, lendo a, vai para o conjunto de todos os destinos possíveis. Conjuntos vazios não viram estado: onde falta transição, a palavra é rejeitada.</p>
+      <p class="contagem" id="info-afd"></p>
+      <div class="grafo" id="grafo-afd"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-afd"></table></div>
+    </section>
+
+    <section class="card etapa" aria-labelledby="t-minimo">
+      <h2 id="t-minimo">4. AFD mínimo</h2>
+      <p class="muted small">Primeiro o AFD é completado com um estado morto (<code>∅</code>) onde faltar transição. Depois as partições são refinadas: começa com finais e não finais e, a cada rodada, dois estados só continuam no mesmo bloco se, com todo símbolo, vão para o mesmo bloco.</p>
+      <ol class="rodadas" id="rodadas" start="0"></ol>
+      <details class="explica">
+        <summary>Tabela de pares distinguíveis</summary>
+        <div class="table-wrap"><table class="tabela" id="tabela-pares"></table></div>
+      </details>
+      <p class="contagem" id="info-minimo"></p>
+      <label class="check"><input type="checkbox" id="mostrar-morto"> Mostrar o estado morto no desenho</label>
+      <div class="grafo" id="grafo-minimo"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-minimo"></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="t-simular">
+      <h2 id="t-simular">Simular uma palavra</h2>
+      <div class="linha simula">
+        <div>
+          <label for="simular-em">Autômato</label>
+          <select id="simular-em">
+            <option value="thompson">1. AFN-ε (A)</option>
+            <option value="semEps">2. AFN sem ε (A)</option>
+            <option value="afd">3. AFD (A)</option>
+            <option value="minimo" selected>4. AFD mínimo (A)</option>
+            <option value="editor">Editor (B)</option>
+          </select>
+        </div>
+        <div class="cresce">
+          <label for="palavra">Palavra</label>
+          <input id="palavra" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" value="aabb">
+        </div>
+      </div>
+      <div class="acoes" role="group" aria-label="Controles da simulação">
+        <button type="button" class="btn secondary" id="sim-inicio">Início</button>
+        <button type="button" class="btn secondary" id="sim-voltar">Voltar</button>
+        <button type="button" class="btn" id="sim-avancar">Avançar</button>
+        <button type="button" class="btn secondary" id="sim-fim">Fim</button>
+      </div>
+      <p class="passo-atual" id="sim-estado" aria-live="polite"></p>
+      <div class="grafo" id="grafo-simulacao"></div>
+    </section>
+
+    <section class="card" aria-labelledby="t-editor">
+      <h2 id="t-editor">Editor de autômatos (B)</h2>
+      <label for="editor">Uma transição por linha (<code>origem símbolo destino</code>), mais as linhas <code>inicial</code> e <code>finais</code></label>
+      <textarea id="editor" rows="9" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <p class="muted small">Vários símbolos na mesma transição: <code>q0 a,b q1</code>. Transição vazia: <code>q0 ε q1</code> ou <code>q0 &amp; q1</code>. Linhas com <code>#</code> são comentários.</p>
+      <div class="acoes">
+        <button type="button" class="btn secondary" id="copiar-minimo">Trazer o AFD mínimo de A</button>
+        <button type="button" class="btn secondary" id="exportar-json">Exportar JSON</button>
+        <label class="btn secondary arquivo">Importar JSON<input type="file" id="importar-json" accept="application/json,.json"></label>
+      </div>
+      <ul class="erros" id="erros-editor" role="alert"></ul>
+      <p class="contagem" id="info-editor"></p>
+      <div class="grafo" id="grafo-editor"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-editor"></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="t-operacoes">
+      <h2 id="t-operacoes">Operações entre A e B</h2>
+      <p class="muted small">A é o AFD mínimo da expressão; B é o autômato do editor. União e interseção usam a construção do produto: os estados são pares (estado de A, estado de B).</p>
+      <div class="acoes">
+        <button type="button" class="btn" id="op-equivalencia">A e B são equivalentes?</button>
+        <button type="button" class="btn secondary" id="op-uniao">A ∪ B</button>
+        <button type="button" class="btn secondary" id="op-intersecao">A ∩ B</button>
+        <button type="button" class="btn secondary" id="op-complemento-a">Complemento de A</button>
+        <button type="button" class="btn secondary" id="op-complemento-b">Complemento de B</button>
+      </div>
+      <p class="resultado" id="resultado-operacao" aria-live="polite"></p>
+      <div class="grafo" id="grafo-operacao"></div>
+      <div class="table-wrap"><table class="tabela" id="tabela-operacao"></table></div>
+    </section>
+
+    <section class="card" aria-labelledby="t-eliminacao">
+      <h2 id="t-eliminacao">De volta para expressão regular</h2>
+      <p class="muted small">Eliminação de estados: um início e um fim novos são ligados por ε, as transições passam a ter expressões e cada estado eliminado troca os caminhos p → k → q por <code>R(p,q) | R(p,k) R(k,k)* R(k,q)</code>.</p>
+      <div class="acoes">
+        <button type="button" class="btn" id="eliminar-a">Eliminar estados do AFD mínimo de A</button>
+        <button type="button" class="btn secondary" id="eliminar-b">Eliminar estados de B</button>
+      </div>
+      <ol class="passos" id="passos-eliminacao"></ol>
+      <p class="resultado" id="resultado-eliminacao" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Tudo roda no seu navegador. Código aberto no <a href="https://github.com/micdog22/automatos-finitos">GitHub</a> · Licença MIT</p>
+  </footer>
+</body>
+</html>
